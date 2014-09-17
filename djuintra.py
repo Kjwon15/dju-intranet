@@ -7,6 +7,8 @@ from collections import namedtuple
 from contextlib import closing
 from lxml import html
 
+__all__ = ('DjuAgent', 'Schedule', 'Timetable')
+
 
 Schedule = namedtuple('Schedule', ('title', 'start', 'end', 'depart'))
 Timetable = namedtuple('Timetable', (
