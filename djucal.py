@@ -1,4 +1,5 @@
 import cookielib
+import datetime
 import urllib
 import urllib2
 from collections import namedtuple
@@ -13,6 +14,7 @@ class DjuAgent(object):
     URL_LOGIN = 'http://intra.dju.kr/servlet/sys.syd.syd01Svl03'
     URL_SCHEDULE = ('http://intra.dju.kr/servlet/sys.syc.syc01Svl15'
                     '?pgm_id=W_SYS032PQ&pass_gbn=&dpt_ck=')
+    DATE_FORMAT = '%Y-%m-%d %H-%M-%S'
 
     def __init__(self):
         cookiejar = cookielib.CookieJar()
@@ -39,8 +41,16 @@ class DjuAgent(object):
             tree = html.fromstring(content)
             trs = tree.xpath('//tr')[6:]
 
-            return (Schedule(
-                tr.find('td[1]').text_content().strip(),
-                tr.find('td[2]').text_content().strip(),
-                tr.find('td[3]').text_content().strip(),
-            ) for tr in trs)
+            for tr in trs:
+                title = tr.find('td[1]').text_content().strip()
+                start = datetime.datetime.strptime(
+                    tr.find('td[2]').text_content().strip(),
+                    self.DATE_FORMAT)
+                try:
+                    end = datetime.datetime.strptime(
+                        tr.find('td[3]').text_content().strip(),
+                        self.DATE_FORMAT)
+                except ValueError:
+                    end = None
+
+                yield Schedule(title, start, end)
