@@ -1,8 +1,12 @@
 import cookielib
 import urllib
 import urllib2
+from collections import namedtuple
 from contextlib import closing
+from lxml import html
 
+
+Schedule = namedtuple('Schedule', ('title', 'start', 'end'))
 
 
 class DjuAgent(object):
@@ -32,4 +36,11 @@ class DjuAgent(object):
     def get_schedule(self):
         with closing(self.opener.open(self.URL_SCHEDULE)) as fp:
             content = fp.read()
-            return content
+            tree = html.fromstring(content)
+            trs = tree.xpath('//tr')[6:]
+
+            return (Schedule(
+                tr.find('td[1]').text_content().strip(),
+                tr.find('td[2]').text_content().strip(),
+                tr.find('td[3]').text_content().strip(),
+            ) for tr in trs)
