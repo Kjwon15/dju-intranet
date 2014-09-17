@@ -7,7 +7,7 @@ from contextlib import closing
 from lxml import html
 
 
-Schedule = namedtuple('Schedule', ('title', 'start', 'end'))
+Schedule = namedtuple('Schedule', ('title', 'start', 'end', 'depart'))
 
 
 class DjuAgent(object):
@@ -53,4 +53,6 @@ class DjuAgent(object):
                 except ValueError:
                     end = None
 
-                yield Schedule(title, start, end)
+                depart = tr.find('td[4]').text_content().strip()
+
+                yield Schedule(title, start, end, depart)
