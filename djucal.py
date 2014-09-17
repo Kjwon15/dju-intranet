@@ -35,7 +35,7 @@ class DjuAgent(object):
             if 'self.location' in content:
                 return True
 
-    def get_schedule(self):
+    def get_schedules(self):
         with closing(self.opener.open(self.URL_SCHEDULE)) as fp:
             content = fp.read()
             tree = html.fromstring(content)
