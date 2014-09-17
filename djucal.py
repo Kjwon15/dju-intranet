@@ -16,10 +16,13 @@ class DjuAgent(object):
                     '?pgm_id=W_SYS032PQ&pass_gbn=&dpt_ck=')
     DATE_FORMAT = '%Y-%m-%d %H-%M-%S'
 
-    def __init__(self):
+    def __init__(self, userid=None, userpw=None):
         cookiejar = cookielib.CookieJar()
         self.opener = urllib2.build_opener(
             urllib2.HTTPCookieProcessor(cookiejar))
+
+        if userid and userpw:
+            self.login(userid, userpw)
 
 
     def login(self, userid, userpw):
