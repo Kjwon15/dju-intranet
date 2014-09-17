@@ -1,5 +1,6 @@
 import cookielib
 import datetime
+import re
 import urllib
 import urllib2
 from collections import namedtuple
@@ -36,8 +37,16 @@ class DjuAgent(object):
             content = fp.read()
             if 'self.location' not in content:
                 tree = html.fromstring(content)
+                error = tree.xpath('//td')[0].text_content().strip()
+                code = int(re.search(r'\d+', error).group())
+
+                if code == 22:
+                    raise ValueError('Password not matched')
+                elif code == 99:
+                    raise ValueError('User id not found')
+
                 msg = tree.xpath('//td')[3].text_content().strip()
-                raise ValueError(msg.encode('utf-8'))
+                raise ValueError(msg)
 
     def get_schedules(self):
         with closing(self.opener.open(self.URL_SCHEDULE)) as fp:
