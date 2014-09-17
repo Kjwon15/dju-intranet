@@ -24,7 +24,6 @@ class DjuAgent(object):
         if userid and userpw:
             self.login(userid, userpw)
 
-
     def login(self, userid, userpw):
         login_data = urllib.urlencode({
             'proc_gubun': '1',
@@ -35,7 +34,7 @@ class DjuAgent(object):
 
         with closing(self.opener.open(self.URL_LOGIN, login_data)) as fp:
             content = fp.read()
-            if not 'self.location' in content:
+            if 'self.location' not in content:
                 tree = html.fromstring(content)
                 msg = tree.xpath('//td')[3].text_content().strip()
                 raise ValueError(msg.encode('utf-8'))
