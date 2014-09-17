@@ -1,7 +1,7 @@
-Dju calendar
+Dju intranet
 ============
 
-This project gives you schedule of Daejeon university.
+This project gives you Api for Daejeon university intranet.
 Daejeon university's web sites are sucks. So I made it.
 
 
