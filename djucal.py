@@ -32,8 +32,10 @@ class DjuAgent(object):
 
         with closing(self.opener.open(self.URL_LOGIN, login_data)) as fp:
             content = fp.read()
-            if 'self.location' in content:
-                return True
+            if not 'self.location' in content:
+                tree = html.fromstring(content)
+                msg = tree.xpath('//td')[3].text_content().strip()
+                raise ValueError(msg.encode('utf-8'))
 
     def get_schedules(self):
         with closing(self.opener.open(self.URL_SCHEDULE)) as fp:
