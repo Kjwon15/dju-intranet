@@ -1,3 +1,9 @@
+""":mod:`djuintra` --- Api for Dju intranet
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This modules provides an API for Daejeon university's intranet.
+
+"""
 import cookielib
 import datetime
 import re
@@ -18,6 +24,17 @@ TimePlace = namedtuple('TimePlace', ('time', 'place'))
 
 
 class DjuAgent(object):
+    """Main class for using Dju intranet.
+
+    You can login with constructor if you gives ID and PW.
+
+    :param userid: User's ID for login
+    :type userid: :class:`str`
+
+    :param userpw: User's password for login
+    :type userpw: :class:`str`
+
+    """
     URL_LOGIN = 'http://intra.dju.kr/servlet/sys.syd.syd01Svl03'
     URL_SCHEDULE = ('http://intra.dju.kr/servlet/sys.syc.syc01Svl15'
                     '?pgm_id=W_SYS032PQ&pass_gbn=&dpt_ck=')
@@ -42,6 +59,17 @@ class DjuAgent(object):
             self.login(userid, userpw)
 
     def login(self, userid, userpw):
+        """Login to Dju intranet.
+
+        :param userid: User's ID for login
+        :type userid: :class:`str`
+
+        :param userpw: User's password for login
+        :type userpw: :class:`str`
+
+        :returns: :const:`True` if login successfully
+
+        """
         login_data = urllib.urlencode({
             'proc_gubun': '1',
             'pgm_id': 'SYS200PE',
@@ -65,6 +93,13 @@ class DjuAgent(object):
                 raise ValueError(msg)
 
     def get_schedules(self):
+        """Get schedules from intranet.
+
+        :returns: a set of :class:`Schedule`
+        :rtype: :class:`collections.Iterable`
+
+        """
+
         with closing(self.opener.open(self.URL_SCHEDULE)) as fp:
             content = fp.read()
             tree = html.fromstring(content)
@@ -87,6 +122,28 @@ class DjuAgent(object):
                 yield Schedule(title, start, end, depart)
 
     def get_timetables(self, year, semester, isbreak, departcode, category):
+        """Get full timetables.
+
+        :param year: a year for timetables
+        :type year: :class:`str` or :class:`int`
+
+        :param semester: 1 for spring, 2 for fall
+        :type semester: :class:`str` or :class:`int`
+
+        :param isbreak: 0 for normal semester, 1 for break semester
+        :type isbreak: :class:`str` or :class:`int`
+
+        :param departcode: 5 digit code for department. for example, '000000'
+                           for all
+        :type departcode: :class:`str`
+
+        :param category: 0 for all, 1 for liberal, 2 for major
+        :type category: :class:`str` or :class:`int`
+
+        :returns: a set of :class:`TimeTable`
+        :rtype: :class:`collections.Iterable`
+
+        """
         url = self.URL_TIMETABLE.format(
             year=year, semester=semester, isbreak=isbreak,
             departcode=departcode, category=category)
