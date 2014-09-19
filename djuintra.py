@@ -59,7 +59,7 @@ class TimeTable(namedtuple('TimeTable', (
     :param maxstudents: How many students can listen this class
     :type maxstudents: :class:`int`
 
-    :param availavle: Is this class available?
+    :param available: Is this class available?
     :type available: :class:`str`
 
     """
