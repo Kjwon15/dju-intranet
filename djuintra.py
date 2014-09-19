@@ -7,11 +7,11 @@ from collections import namedtuple
 from contextlib import closing
 from lxml import html
 
-__all__ = ('DjuAgent', 'Schedule', 'Timetable')
+__all__ = ('DjuAgent', 'Schedule', 'TimePlace', 'TimeTable')
 
 
 Schedule = namedtuple('Schedule', ('title', 'start', 'end', 'depart'))
-Timetable = namedtuple('Timetable', (
+TimeTable = namedtuple('TimeTable', (
     'grade', 'division', 'code', 'classcode', 'classtype', 'classname', 'score',
     'time', 'minor', 'profname', 'times', 'maxstudents', 'available'))
 TimePlace = namedtuple('TimePlace', ('time', 'place'))
@@ -115,6 +115,6 @@ class DjuAgent(object):
                 maxstudents = int(tr.find('td[12]').text_content().strip())
                 available = tr.find('td[13]').text_content().strip()
 
-                yield Timetable(grade, division, code, classcode, classtype,
+                yield TimeTable(grade, division, code, classcode, classtype,
                                 classname, score, time, minor, profname, times,
                                 maxstudents, available)
