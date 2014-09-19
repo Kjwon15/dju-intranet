@@ -14,6 +14,7 @@ Schedule = namedtuple('Schedule', ('title', 'start', 'end', 'depart'))
 Timetable = namedtuple('Timetable', (
     'grade', 'division', 'code', 'classcode', 'classtype', 'classname', 'score',
     'time', 'minor', 'profname', 'times', 'maxstudents', 'available'))
+TimePlace = namedtuple('TimePlace', ('time', 'place'))
 
 
 class DjuAgent(object):
@@ -106,7 +107,11 @@ class DjuAgent(object):
                 minor = tr.find('td[9]').text_content().strip()
                 profname = tr.find('td[10]').text_content().strip()
                 # FIXME: parse this to array
-                times = tr.find('td[11]').text_content().strip()
+                _times = tr.xpath('td[11]//font')
+                times = []
+                for i in xrange(0, len(_times), 2):
+                    times.append(TimePlace(_times[i].text_content().strip(),
+                                 _times[i+1].text_content().strip()))
                 maxstudents = int(tr.find('td[12]').text_content().strip())
                 available = tr.find('td[13]').text_content().strip()
 
