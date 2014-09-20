@@ -69,3 +69,11 @@ Get personal scores
            print(u'{0.title}: {0.score}'.format(score))
    print(u'Average score: {0}'.format(personal_scores.averagescore))
 
+
+Documentation
+-------------
+
+http://dju-intranet.readthedocs.org/en/latest/
+
+.. image:: https://readthedocs.org/projects/dju-intranet/badge/
+   :target: http://dju-intranet.readthedocs.org/en/latest/
