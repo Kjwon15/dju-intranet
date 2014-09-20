@@ -14,8 +14,8 @@ Login
 .. code-block:: python
 
    >>> import djuintra
-   >>> agent = djuintra.DjuAgent()
-   >>> agent.login('<User ID>', '<User PW>')
+   >>> da = djuintra.DjuAgent()
+   >>> da.login('<User ID>', '<User PW>')
    >>> # returns True if logged in successfully.
 
 
@@ -55,4 +55,17 @@ Get Schedules
    복학신청기간(학사서비스팀): 2014-07-14 09:00:00~2014-07-25 17:30:00
    부/복수전공신청기간(학사서비스팀): 2014-07-07 09:00:00~2014-07-11 17:30:00
    모의토익원서접수신청기간(외국어교육센터): 2014-09-15 12:00:00~2014-09-19 17:00:00
+
+
+Get personal scores
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   personal_scores = da.get_personal_scores()
+   for semester in personal_scores.semesters:
+       print(semester.title)
+       for score in semester.scores:
+           print(u'{0.title}: {0.score}'.format(score))
+   print(u'Average score: {0}'.format(personal_scores.averagescore))
 
