@@ -13,7 +13,8 @@ from collections import namedtuple
 from contextlib import closing
 from lxml import html
 
-__all__ = ('DjuAgent', 'Schedule', 'TimePlace', 'TimeTable')
+__all__ = ('DjuAgent', 'Score', 'Scores', 'Semester', 'Schedule', 'TimePlace',
+           'TimeTable')
 
 
 Schedule = namedtuple('Schedule', ('title', 'start', 'end', 'depart'))
@@ -66,6 +67,51 @@ class TimeTable(namedtuple('TimeTable', (
     pass
 
 
+class Scores(namedtuple('Scores', ('averagescore', 'semesters'))):
+    """All personal scores.
+
+    :param averagescore: Average score for you
+    :type averagescore: :class:`float`
+
+    :param semesters: A set of :class:`Semester`
+    :type semesters: :class:`collections.Iterable`
+
+    """
+    pass
+
+
+class Semester(namedtuple('Semester', ('title', 'scores'))):
+    """Scores for the semester
+
+    :param title: Title of the semester
+    :type title: :class:`str`
+
+    :param scores: A set of :class:`Score`
+    :type scores: :class:`collections.Iterable`
+
+    """
+    pass
+
+
+class Score(namedtuple('Score', ('code', 'title', 'point', 'score'))):
+    """Personal scores data.
+
+    :param code: Cource code
+    :type code: :class:`str`
+
+    :param title: Cource title
+    :type title: :class:`str`
+
+    :param point: Credits for course
+    :type point: :class:`float`
+
+    :param score: Your score
+    :type score: :class:`str`
+
+    """
+    pass
+
+
 class DjuAgent(object):
     """Main class for using Dju intranet.
 
@@ -85,6 +131,8 @@ class DjuAgent(object):
     URL_TIMETABLE = ('http://intra.dju.kr/myhtml/su/sue/schedule/'
                      '{year}-{semester}{isbreak}-001'
                      '-{departcode}-{category}.htm')
+    URL_PERSONAL_SCORES = ('http://intra.dju.kr/servlet/su.suh.suh04Svl01?'
+                           'pgm_id=W_SUH080PQ&pass_gbn=001&dpt_ck=')
     DATE_FORMAT = '%Y-%m-%d %H-%M-%S'
 
     TIMETABLE_CATEGORIES = {
@@ -219,3 +267,37 @@ class DjuAgent(object):
                 yield TimeTable(grade, division, code, classcode, classtype,
                                 classname, score, time, minor, profname, times,
                                 maxstudents, available)
+
+    def get_personal_scores(self):
+        """Get personal total scores
+
+        :returns: A personal scores group by semesters and Average score
+        :rtype: :class:`Scores`
+        """
+        with closing(self.opener.open(self.URL_PERSONAL_SCORES)) as fp:
+            content = fp.read()
+            tree = html.fromstring(content)
+            table_semesters = tree.xpath('//table')[3:-2]
+            total_score = tree.xpath('//table')[-2]
+
+            semesters = []
+            for table in table_semesters:
+                title = table.find('tr[1]').text_content().strip()
+                rows = table.xpath('.//tr')[2:-1]
+                scores = (Score(
+                    code=row.find('td[3]').text_content().strip(),
+                    title=row.find('td[4]').text_content().strip(),
+                    point=float(row.find('td[5]').text_content().strip()),
+                    score=row.find('td[6]').text_content().strip(),
+                ) for row in rows)
+                semesters.append(Semester(
+                    title=title,
+                    scores=scores,
+                ))
+
+            average_score = float(total_score.xpath('.//td')[-1].text_content())
+
+            return Scores(
+                semesters=semesters,
+                averagescore=average_score,
+            )
