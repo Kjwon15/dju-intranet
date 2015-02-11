@@ -158,7 +158,7 @@ class DjuAgent(object):
         :param userpw: User's password for login
         :type userpw: :class:`str`
 
-        :returns: :const:`True` if login successfully
+        :returns: :const:`None` if login successfully
 
         """
         login_data = urllib.urlencode({
