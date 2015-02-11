@@ -322,8 +322,10 @@ class DjuAgent(object):
         old_course_clses = tree.find('*//input[@name="old_course_clses"]').value
 
         now = datetime.datetime.now()
+        from_1990 = now
+        from_1990.replace(year=now.year-1900)
 
-        local_time = now.strftime('%Y-%m-%d %H:%M:%S')
+        local_time = from_1990.strftime('%Y-%m-%d %H:%M:%S')
         local_get_time = now.strftime('%s')
 
         data = {
@@ -337,11 +339,13 @@ class DjuAgent(object):
 
         for idx in range(30):
             try:
-                data['curi_num' + idx] = courses[idx][0]
-                data['course_cls' + idx] = courses[idx][1]
+                data['curi_num{0}'.format(idx)] = courses[idx][0]
+                data['course_cls{0}'.format(idx)] = courses[idx][1]
             except IndexError:
-                data['curi_num' + idx] = ''
-                data['course_cls' + idx] = ''
+                data['curi_num{0}'.format(idx)] = ''
+                data['course_cls{0}'.format(idx)] = ''
+
+        data = urllib.urlencode(data)
 
         with closing(self.opener.open(self.URL_COURSE, data=data)) as fp:
             tree = html.parse(fp)
