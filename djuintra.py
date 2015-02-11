@@ -133,6 +133,8 @@ class DjuAgent(object):
                      '-{departcode}-{category}.htm')
     URL_PERSONAL_SCORES = ('http://intra.dju.kr/servlet/su.suh.suh04Svl01?'
                            'pgm_id=W_SUH080PQ&pass_gbn=001&dpt_ck=')
+    URL_COURSE = ('http://intra.dju.kr/servlet/su.sug.sug02Svl03'
+                       '?pgm_id=W_SUG010PE&pass_gbn=001&dpt_ck=03')
     DATE_FORMAT = '%Y-%m-%d %H-%M-%S'
 
     TIMETABLE_CATEGORIES = {
@@ -297,6 +299,58 @@ class DjuAgent(object):
                 semesters=semesters,
                 averagescore=average_score,
             )
+
+    def register_course(self, courses):
+        # TODO: Documenting parameters
+        with closing(self.opener.open(self.URL_COURSE)) as fp:
+            content = fp.read()
+
+        if 'Do_Action' not in content:
+            errorcode, msg = self._get_error_code(content)
+            if errorcode == 23:
+                # cookie error
+                pass
+            elif errorcode == 99:
+                # not your time
+                pass
+            raise Exception(msg)
+
+        tree = html.fromstring(content)
+        h_dept_cd = tree.find('*//input[@name="h_dept_cd"]').value
+        h_class_div = tree.find('*//input[@name="h_class_div"]').value
+        old_curi_nums = tree.find('*//input[@name="old_curi_nums"]').value
+        old_course_clses = tree.find('*//input[@name="old_course_clses"]').value
+
+        now = datetime.datetime.now()
+
+        local_time = now.strftime('%Y-%m-%d %H:%M:%S')
+        local_get_time = now.strftime('%s')
+
+        data = {
+            'h_dept_cd': h_dept_cd,
+            'h_class_div': h_class_div,
+            'old_curi_nums': old_curi_nums,
+            'old_course_clses': old_course_clses,
+            'local_time': local_time,
+            'local_get_time': local_get_time,
+        }
+
+        for idx in range(30):
+            try:
+                data['curi_num' + idx] = courses[idx][0]
+                data['course_cls' + idx] = courses[idx][1]
+            except IndexError:
+                data['curi_num' + idx] = ''
+                data['course_cls' + idx] = ''
+
+        with closing(self.opener.open(self.URL_COURSE, data=data)) as fp:
+            tree = html.parse(fp)
+            errors = tree.xpath('//*[@bgcolor="red"]')
+
+        if errors:
+            error_msgs = [error.text_content().strip() for error in errors]
+            raise ValueError(error_msgs)
+
 
     @classmethod
     def _get_error_code(cls, content):
