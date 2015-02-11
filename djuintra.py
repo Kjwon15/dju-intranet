@@ -144,9 +144,7 @@ class DjuAgent(object):
     }
 
     def __init__(self, userid=None, userpw=None):
-        cookiejar = cookielib.CookieJar()
-        self.opener = urllib2.build_opener(
-            urllib2.HTTPCookieProcessor(cookiejar))
+        self.cookiejar = cookielib.CookieJar()
 
         if userid and userpw:
             self.login(userid, userpw)
@@ -170,7 +168,7 @@ class DjuAgent(object):
             'pwd': userpw,
         })
 
-        with closing(self.opener.open(self.URL_LOGIN, login_data)) as fp:
+        with closing(self._get_opener().open(self.URL_LOGIN, login_data)) as fp:
             content = fp.read()
             if 'self.location' not in content:
                 errorcode, msg = self._get_error_code(content)
@@ -189,7 +187,7 @@ class DjuAgent(object):
 
         """
 
-        with closing(self.opener.open(self.URL_SCHEDULE)) as fp:
+        with closing(self._get_opener().open(self.URL_SCHEDULE)) as fp:
             content = fp.read()
             tree = html.fromstring(content)
             trs = tree.xpath('//tr')[6:]
@@ -236,7 +234,7 @@ class DjuAgent(object):
         url = self.URL_TIMETABLE.format(
             year=year, semester=semester, isbreak=isbreak,
             departcode=departcode, category=category)
-        with closing(self.opener.open(url)) as fp:
+        with closing(self._get_opener().open(url)) as fp:
             content = fp.read()
             tree = html.fromstring(content)
             trs = tree.xpath('//table[3]/tr')[1:]
@@ -272,7 +270,7 @@ class DjuAgent(object):
         :returns: A personal scores group by semesters and Average score
         :rtype: :class:`Scores`
         """
-        with closing(self.opener.open(self.URL_PERSONAL_SCORES)) as fp:
+        with closing(self._get_opener().open(self.URL_PERSONAL_SCORES)) as fp:
             content = fp.read()
             tree = html.fromstring(content)
             table_semesters = tree.xpath('//table')[3:-2]
@@ -302,7 +300,10 @@ class DjuAgent(object):
 
     def register_course(self, courses):
         # TODO: Documenting parameters
-        with closing(self.opener.open(self.URL_COURSE)) as fp:
+
+        opener = self._get_opener()
+
+        with closing(opener.open(self.URL_COURSE)) as fp:
             content = fp.read()
 
         if 'Do_Action' not in content:
@@ -347,7 +348,10 @@ class DjuAgent(object):
 
         data = urllib.urlencode(data)
 
-        with closing(self.opener.open(self.URL_COURSE, data=data)) as fp:
+        header_referer = ('Referer', self.URL_COURSE)
+        opener.addheaders.append(header_referer)
+
+        with closing(opener.open(self.URL_COURSE, data=data)) as fp:
             tree = html.parse(fp)
             errors = tree.xpath('//*[@bgcolor="red"]')
 
@@ -355,6 +359,10 @@ class DjuAgent(object):
             error_msgs = [error.text_content().strip() for error in errors]
             raise ValueError(error_msgs)
 
+    def _get_opener(self):
+        opener = urllib2.build_opener(
+            urllib2.HTTPCookieProcessor(self.cookiejar))
+        return opener
 
     @classmethod
     def _get_error_code(cls, content):
