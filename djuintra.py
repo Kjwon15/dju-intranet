@@ -171,16 +171,12 @@ class DjuAgent(object):
         with closing(self.opener.open(self.URL_LOGIN, login_data)) as fp:
             content = fp.read()
             if 'self.location' not in content:
-                tree = html.fromstring(content)
-                error = tree.xpath('//td')[0].text_content().strip()
-                code = int(re.search(r'\d+', error).group())
+                errorcode, msg = self._get_error_code(content)
 
-                if code == 22:
+                if errorcode == 22:
                     raise ValueError('Password not matched')
-                elif code == 99:
+                elif errorcode == 99:
                     raise ValueError('User id not found')
-
-                msg = tree.xpath('//td')[3].text_content().strip()
                 raise ValueError(msg)
 
     def get_schedules(self):
@@ -301,3 +297,12 @@ class DjuAgent(object):
                 semesters=semesters,
                 averagescore=average_score,
             )
+
+    @classmethod
+    def _get_error_code(cls, content):
+        tree = html.fromstring(content)
+        error = tree.xpath('//td')[0].text_content().strip()
+        code = int(re.search(r'\d+', error).group())
+        msg = tree.xpath('//td')[3].text_content().strip()
+
+        return (code, msg)
