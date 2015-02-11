@@ -124,17 +124,17 @@ class DjuAgent(object):
     :type userpw: :class:`str`
 
     """
-    URL_LOGIN = 'http://intra.dju.kr/servlet/sys.syd.syd01Svl03'
-    URL_SCHEDULE = ('http://intra.dju.kr/servlet/sys.syc.syc01Svl15'
+    URL_LOGIN = 'http://intra.dju.ac.kr/servlet/sys.syd.syd01Svl03'
+    URL_SCHEDULE = ('http://intra.dju.ac.kr/servlet/sys.syc.syc01Svl15'
                     '?pgm_id=W_SYS032PQ&pass_gbn=&dpt_ck=')
     # TODO: documentation departcode.
-    URL_TIMETABLE = ('http://intra.dju.kr/myhtml/su/sue/schedule/'
+    URL_TIMETABLE = ('http://intra.dju.ac.kr/myhtml/su/sue/schedule/'
                      '{year}-{semester}{isbreak}-001'
                      '-{departcode}-{category}.htm')
-    URL_PERSONAL_SCORES = ('http://intra.dju.kr/servlet/su.suh.suh04Svl01?'
+    URL_PERSONAL_SCORES = ('http://intra.dju.ac.kr/servlet/su.suh.suh04Svl01?'
                            'pgm_id=W_SUH080PQ&pass_gbn=001&dpt_ck=')
-    URL_COURSE = ('http://intra.dju.kr/servlet/su.sug.sug02Svl03'
-                       '?pgm_id=W_SUG010PE&pass_gbn=001&dpt_ck=03')
+    URL_COURSE = ('http://intra.dju.ac.kr/servlet/su.sug.sug02Svl03'
+                  '?pgm_id=W_SUG010PE&pass_gbn=001&dpt_ck=03')
     DATE_FORMAT = '%Y-%m-%d %H-%M-%S'
 
     TIMETABLE_CATEGORIES = {
