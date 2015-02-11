@@ -299,7 +299,12 @@ class DjuAgent(object):
             )
 
     def register_course(self, courses):
-        # TODO: Documenting parameters
+        """Register courses.
+
+        :param courses: a list of tuples like [('xxxxxx', 'yy'),].
+        :type courses: :class:`collections.Sequence`
+
+        """
 
         opener = self._get_opener()
 

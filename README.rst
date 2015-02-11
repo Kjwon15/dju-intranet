@@ -70,6 +70,20 @@ Get personal scores
    print(u'Average score: {0}'.format(personal_scores.averagescore))
 
 
+Course registration
+~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   courses = [
+       ('000000', '01'),
+       ('000001', '02'),
+       ('010101', '30'),
+   ]
+
+   da.register_course(courses)
+
+
 Documentation
 -------------
 
