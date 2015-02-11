@@ -16,7 +16,7 @@ Login
    >>> import djuintra
    >>> da = djuintra.DjuAgent()
    >>> da.login('<User ID>', '<User PW>')
-   >>> # returns True if logged in successfully.
+   >>> # Nothing happen if logged in successfully, else raise an exception.
 
 
 Get Time tables
