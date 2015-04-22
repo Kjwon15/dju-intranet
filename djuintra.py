@@ -134,6 +134,8 @@ class DjuAgent(object):
                      '-{departcode}-{category}.htm')
     URL_PERSONAL_SCORES = ('http://intra.dju.ac.kr/servlet/su.suh.suh04Svl01?'
                            'pgm_id=W_SUH080PQ&pass_gbn=001&dpt_ck=')
+    URL_TOEIC = ('http://intra.dju.ac.kr/servlet/su.sul.sul01Svl35'
+                 '?pgm_id=W_SUL330PE&pass_gbn=&dpt_ck=03')
     URL_COURSE = ('http://intra.dju.ac.kr/servlet/su.sug.sug02Svl03'
                   '?pgm_id=W_SUG010PE&pass_gbn=001&dpt_ck=03')
     DATE_FORMAT = '%Y-%m-%d %H-%M-%S'
@@ -367,6 +369,40 @@ class DjuAgent(object):
         if errors:
             error_msgs = [error.text_content().strip() for error in errors]
             raise ValueError(error_msgs)
+
+    def register_toeic(self):
+        """Register simulated toeic
+        """
+
+        opener = self._get_opener()
+
+        with closing(opener.open(self.URL_TOEIC)) as fp:
+            content = fp.read()
+
+        if 'Do_Save' not in content:
+            errorcode, msg = self._get_error_code(content)
+            raise Exception(msg)
+
+        tree = html.fromstring(content)
+
+        action = tree.find('*//form').action
+
+        data = urllib.urlencode({
+            'year': tree.find('*//input[@name="year"]').value,
+            'smt': tree.find('*//input[@name="smt"]').value,
+            'student_cd': tree.find('*//input[@name="student_cd"]').value,
+            'curi_num': tree.find('*//input[@name="curi_num"]').value,
+            'dt': tree.find('*//input[@name="dt"]').value,
+            'gbn': tree.find('*//input[@name="gbn"]').value,
+        })
+
+        opener.addheaders.append(('Referer', self.URL_TOEIC))
+
+        with closing(opener.open(action, data)) as fp:
+            content = fp.read()
+            if 'error.jpg' in content:
+                errorcode, msg = self._get_error_code(content)
+                raise Exception(msg)
 
     def _get_opener(self):
         opener = urllib2.build_opener(
