@@ -124,6 +124,7 @@ class DjuAgent(object):
     :type userpw: :class:`str`
 
     """
+    URL_LOGIN_REFERER = 'http://intra.dju.ac.kr/dju/login/sycLoginSvl01.htm'
     URL_LOGIN = 'http://intra.dju.ac.kr/servlet/sys.syd.syd01Svl03'
     URL_SCHEDULE = ('http://intra.dju.ac.kr/servlet/sys.syc.syc01Svl15'
                     '?pgm_id=W_SYS032PQ&pass_gbn=&dpt_ck=')
@@ -168,7 +169,10 @@ class DjuAgent(object):
             'pwd': userpw,
         })
 
-        with closing(self._get_opener().open(self.URL_LOGIN, login_data)) as fp:
+        opener = self._get_opener()
+        opener.addheaders.append(('Referer', self.URL_LOGIN_REFERER))
+
+        with closing(opener.open(self.URL_LOGIN, login_data)) as fp:
             content = fp.read()
             if 'self.location' not in content:
                 errorcode, msg = self._get_error_code(content)
