@@ -4,13 +4,10 @@
 This modules provides an API for Daejeon university's intranet.
 
 """
-import cookielib
 import datetime
 import re
-import urllib
-import urllib2
+import requests
 from collections import namedtuple
-from contextlib import closing
 from lxml import html
 
 __all__ = ('DjuAgent', 'Score', 'Scores', 'Semester', 'Schedule', 'TimePlace',
@@ -147,7 +144,7 @@ class DjuAgent(object):
     }
 
     def __init__(self, userid=None, userpw=None):
-        self.cookiejar = cookielib.CookieJar()
+        self.session = requests.session()
 
         if userid and userpw:
             self.login(userid, userpw)
@@ -164,26 +161,25 @@ class DjuAgent(object):
         :returns: :const:`None` if login successfully
 
         """
-        login_data = urllib.urlencode({
-            'proc_gubun': '1',
-            'pgm_id': 'SYS200PE',
-            'id': userid,
-            'pwd': userpw,
-        })
 
-        opener = self._get_opener()
-        opener.addheaders.append(('Referer', self.URL_LOGIN_REFERER))
+        content = self.session.post(
+            self.URL_LOGIN,
+            {
+                'proc_gubun': '1',
+                'pgm_id': 'SYS200PE',
+                'id': userid,
+                'pwd': userpw,
+            },
+            headers={'referer': self.URL_LOGIN_REFERER}).text
 
-        with closing(opener.open(self.URL_LOGIN, login_data)) as fp:
-            content = fp.read()
-            if 'self.location' not in content:
-                errorcode, msg = self._get_error_code(content)
+        if 'self.location' not in content:
+            errorcode, msg = self._get_error_code(content)
 
-                if errorcode == 22:
-                    raise ValueError('Password not matched')
-                elif errorcode == 99:
-                    raise ValueError('User id not found')
-                raise ValueError(msg)
+            if errorcode == 22:
+                raise ValueError('Password not matched')
+            elif errorcode == 99:
+                raise ValueError('User id not found')
+            raise ValueError(msg)
 
     def get_schedules(self):
         """Get schedules from intranet.
@@ -193,26 +189,27 @@ class DjuAgent(object):
 
         """
 
-        with closing(self._get_opener().open(self.URL_SCHEDULE)) as fp:
-            content = fp.read()
-            tree = html.fromstring(content)
-            trs = tree.xpath('//tr')[6:]
+        response = self.session.get(self.URL_SCHEDULE)
+        content = response.text
 
-            for tr in trs:
-                title = tr.find('td[1]').text_content().strip()
-                start = datetime.datetime.strptime(
-                    tr.find('td[2]').text_content().strip(),
+        tree = html.fromstring(content)
+        trs = tree.xpath('//tr')[6:]
+
+        for tr in trs:
+            title = tr.find('td[1]').text_content().strip()
+            start = datetime.datetime.strptime(
+                tr.find('td[2]').text_content().strip(),
+                self.DATE_FORMAT)
+            try:
+                end = datetime.datetime.strptime(
+                    tr.find('td[3]').text_content().strip(),
                     self.DATE_FORMAT)
-                try:
-                    end = datetime.datetime.strptime(
-                        tr.find('td[3]').text_content().strip(),
-                        self.DATE_FORMAT)
-                except ValueError:
-                    end = None
+            except ValueError:
+                end = None
 
-                depart = tr.find('td[4]').text_content().strip()
+            depart = tr.find('td[4]').text_content().strip()
 
-                yield Schedule(title, start, end, depart)
+            yield Schedule(title, start, end, depart)
 
     def get_timetables(self, year, semester, isbreak, departcode, category):
         """Get full timetables.
@@ -240,35 +237,36 @@ class DjuAgent(object):
         url = self.URL_TIMETABLE.format(
             year=year, semester=semester, isbreak=isbreak,
             departcode=departcode, category=category)
-        with closing(self._get_opener().open(url)) as fp:
-            content = fp.read()
-            tree = html.fromstring(content)
-            trs = tree.xpath('//table[3]/tr')[1:]
 
-            for tr in trs:
-                grade = tr.find('td[1]').text_content().strip()
-                grade = int(grade) if grade else None
-                division = tr.find('td[2]').text_content().strip()
-                code = tr.find('td[3]').text_content().strip()
-                classcode = tr.find('td[4]').text_content().strip()
-                classtype = tr.find('td[5]').text_content().strip()
-                classname = tr.find('td[6]').text_content().strip()
-                score = int(tr.find('td[7]').text_content().strip())
-                time = int(tr.find('td[8]').text_content().strip())
-                minor = tr.find('td[9]').text_content().strip()
-                profname = tr.find('td[10]').text_content().strip()
-                # FIXME: parse this to array
-                _times = tr.xpath('td[11]//font')
-                times = []
-                for i in xrange(0, len(_times), 2):
-                    times.append(TimePlace(_times[i].text_content().strip(),
-                                 _times[i+1].text_content().strip()))
-                maxstudents = int(tr.find('td[12]').text_content().strip())
-                available = tr.find('td[13]').text_content().strip()
+        content = self.session.get(url).text
 
-                yield TimeTable(grade, division, code, classcode, classtype,
-                                classname, score, time, minor, profname, times,
-                                maxstudents, available)
+        tree = html.fromstring(content)
+        trs = tree.xpath('//table[3]/tr')[1:]
+
+        for tr in trs:
+            grade = tr.find('td[1]').text_content().strip()
+            grade = int(grade) if grade else None
+            division = tr.find('td[2]').text_content().strip()
+            code = tr.find('td[3]').text_content().strip()
+            classcode = tr.find('td[4]').text_content().strip()
+            classtype = tr.find('td[5]').text_content().strip()
+            classname = tr.find('td[6]').text_content().strip()
+            score = int(tr.find('td[7]').text_content().strip())
+            time = int(tr.find('td[8]').text_content().strip())
+            minor = tr.find('td[9]').text_content().strip()
+            profname = tr.find('td[10]').text_content().strip()
+            # FIXME: parse this to array
+            _times = tr.xpath('td[11]//font')
+            times = []
+            for i in xrange(0, len(_times), 2):
+                times.append(TimePlace(_times[i].text_content().strip(),
+                             _times[i+1].text_content().strip()))
+            maxstudents = int(tr.find('td[12]').text_content().strip())
+            available = tr.find('td[13]').text_content().strip()
+
+            yield TimeTable(grade, division, code, classcode, classtype,
+                            classname, score, time, minor, profname, times,
+                            maxstudents, available)
 
     def get_personal_scores(self):
         """Get personal total scores
@@ -276,33 +274,33 @@ class DjuAgent(object):
         :returns: A personal scores group by semesters and Average score
         :rtype: :class:`Scores`
         """
-        with closing(self._get_opener().open(self.URL_PERSONAL_SCORES)) as fp:
-            content = fp.read()
-            tree = html.fromstring(content)
-            table_semesters = tree.xpath('//table')[3:-2]
-            total_score = tree.xpath('//table')[-2]
+        content = self.session.get(self.URL_PERSONAL_SCORES).text
 
-            semesters = []
-            for table in table_semesters:
-                title = table.find('tr[1]').text_content().strip()
-                rows = table.xpath('.//tr')[2:-1]
-                scores = (Score(
-                    code=row.find('td[3]').text_content().strip(),
-                    title=row.find('td[4]').text_content().strip(),
-                    point=float(row.find('td[5]').text_content().strip()),
-                    score=row.find('td[6]').text_content().strip(),
-                ) for row in rows)
-                semesters.append(Semester(
-                    title=title,
-                    scores=scores,
-                ))
+        tree = html.fromstring(content)
+        table_semesters = tree.xpath('//table')[3:-2]
+        total_score = tree.xpath('//table')[-2]
 
-            average_score = float(total_score.xpath('.//td')[-1].text_content())
+        semesters = []
+        for table in table_semesters:
+            title = table.find('tr[1]').text_content().strip()
+            rows = table.xpath('.//tr')[2:-1]
+            scores = (Score(
+                code=row.find('td[3]').text_content().strip(),
+                title=row.find('td[4]').text_content().strip(),
+                point=float(row.find('td[5]').text_content().strip()),
+                score=row.find('td[6]').text_content().strip(),
+            ) for row in rows)
+            semesters.append(Semester(
+                title=title,
+                scores=scores,
+            ))
 
-            return Scores(
-                semesters=semesters,
-                averagescore=average_score,
-            )
+        average_score = float(total_score.xpath('.//td')[-1].text_content())
+
+        return Scores(
+            semesters=semesters,
+            averagescore=average_score,
+        )
 
     def register_course(self, courses):
         """Register courses.
@@ -312,10 +310,7 @@ class DjuAgent(object):
 
         """
 
-        opener = self._get_opener()
-
-        with closing(opener.open(self.URL_COURSE)) as fp:
-            content = fp.read()
+        content = self.session.get(self.URL_COURSE).text
 
         if 'Do_Action' not in content:
             errorcode, msg = self._get_error_code(content)
@@ -357,14 +352,14 @@ class DjuAgent(object):
                 data['curi_num{0}'.format(idx)] = ''
                 data['course_cls{0}'.format(idx)] = ''
 
-        data = urllib.urlencode(data)
+        content = self.session.post(
+            self.URL_CORSE,
+            data=data,
+            headers={'referer': self.URL_COURSE}).text
 
-        header_referer = ('Referer', self.URL_COURSE)
-        opener.addheaders.append(header_referer)
+        tree = html.fromstring(content)
+        errors = tree.xpath('//*[@bgcolor="red"]')
 
-        with closing(opener.open(self.URL_COURSE, data=data)) as fp:
-            tree = html.parse(fp)
-            errors = tree.xpath('//*[@bgcolor="red"]')
 
         if errors:
             error_msgs = [error.text_content().strip() for error in errors]
@@ -374,10 +369,7 @@ class DjuAgent(object):
         """Register simulated toeic
         """
 
-        opener = self._get_opener()
-
-        with closing(opener.open(self.URL_TOEIC)) as fp:
-            content = fp.read()
+        content = self.session.get(self.URL_TOEIC).text
 
         if 'Do_Save' not in content:
             errorcode, msg = self._get_error_code(content)
@@ -387,27 +379,21 @@ class DjuAgent(object):
 
         action = tree.find('*//form').action
 
-        data = urllib.urlencode({
-            'year': tree.find('*//input[@name="year"]').value,
-            'smt': tree.find('*//input[@name="smt"]').value,
-            'student_cd': tree.find('*//input[@name="student_cd"]').value,
-            'curi_num': tree.find('*//input[@name="curi_num"]').value,
-            'dt': tree.find('*//input[@name="dt"]').value,
-            'gbn': tree.find('*//input[@name="gbn"]').value,
-        })
+        content = self.session.post(
+            action,
+            data = {
+                'year': tree.find('*//input[@name="year"]').value,
+                'smt': tree.find('*//input[@name="smt"]').value,
+                'student_cd': tree.find('*//input[@name="student_cd"]').value,
+                'curi_num': tree.find('*//input[@name="curi_num"]').value,
+                'dt': tree.find('*//input[@name="dt"]').value,
+                'gbn': tree.find('*//input[@name="gbn"]').value,
+            },
+            headers={'referer': self.URL_TOEIC}).text
 
-        opener.addheaders.append(('Referer', self.URL_TOEIC))
-
-        with closing(opener.open(action, data)) as fp:
-            content = fp.read()
-            if 'error.jpg' in content:
-                errorcode, msg = self._get_error_code(content)
-                raise Exception(msg)
-
-    def _get_opener(self):
-        opener = urllib2.build_opener(
-            urllib2.HTTPCookieProcessor(self.cookiejar))
-        return opener
+        if 'error.jpg' in content:
+            errorcode, msg = self._get_error_code(content)
+            raise Exception(msg)
 
     @classmethod
     def _get_error_code(cls, content):
