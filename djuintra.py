@@ -143,10 +143,12 @@ class DjuAgent(object):
         'major': 2,
     }
 
-    def __init__(self, userid=None, userpw=None):
+    def __init__(self, userid=None, userpw=None, login_auth=None):
         self.session = requests.session()
 
-        if userid and userpw:
+        if login_auth:
+            self.set_login_auth(login_auth)
+        elif userid and userpw:
             self.login(userid, userpw)
 
     def login(self, userid, userpw):
@@ -180,6 +182,14 @@ class DjuAgent(object):
             elif errorcode == 99:
                 raise ValueError('User id not found')
             raise ValueError(msg)
+
+    def get_login_auth(self):
+        return self.session.cookies['LOGIN_AUTH']
+
+    def set_login_auth(self, login_auth):
+        requests.utils.add_dict_to_cookiejar(
+            self.session.cookies,
+            {'LOGIN_AUTH': login_auth})
 
     def get_schedules(self):
         """Get schedules from intranet.
