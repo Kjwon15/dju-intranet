@@ -1,5 +1,4 @@
 import os.path
-from djuintra import __version__ as version
 
 try:
     from setuptools import find_packages, setup
@@ -25,7 +24,7 @@ install_reqs = [
 
 setup(
     name='dju-intranet',
-    version=version,
+    version='0.1.3',
     description='Daejeon university intranet API',
     long_description=readfile('README.rst'),
     url='https://github.com/Kjwon15/dju-intranet',
