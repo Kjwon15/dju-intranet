@@ -12,6 +12,7 @@ from lxml import html
 
 __all__ = ('DjuAgent', 'Score', 'Scores', 'Semester', 'Schedule', 'TimePlace',
            'TimeTable')
+__version__ = '0.1.1'
 
 
 Schedule = namedtuple('Schedule', ('title', 'start', 'end', 'depart'))
@@ -370,7 +371,6 @@ class DjuAgent(object):
         tree = html.fromstring(content)
         errors = tree.xpath('//*[@bgcolor="red"]')
 
-
         if errors:
             error_msgs = [error.text_content().strip() for error in errors]
             raise ValueError(error_msgs)
@@ -391,7 +391,7 @@ class DjuAgent(object):
 
         content = self.session.post(
             action,
-            data = {
+            data={
                 'year': tree.find('*//input[@name="year"]').value,
                 'smt': tree.find('*//input[@name="smt"]').value,
                 'student_cd': tree.find('*//input[@name="student_cd"]').value,

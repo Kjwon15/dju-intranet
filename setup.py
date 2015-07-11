@@ -1,5 +1,5 @@
 import os.path
-from pip.req import parse_requirements
+from djuintra import __version__ as version
 
 try:
     from setuptools import find_packages, setup
@@ -17,11 +17,15 @@ def readfile(filename):
         return ''
 
 
-install_reqs = [str(ir.req) for ir in parse_requirements('requirements.txt')]
+install_reqs = [
+    'lxml>=3.4.0',
+    'requests>2.4.3',
+]
 
 
 setup(
     name='dju-intranet',
+    version=version,
     description='Daejeon university intranet API',
     long_description=readfile('README.rst'),
     url='https://github.com/Kjwon15/dju-intranet',
