@@ -12,7 +12,7 @@ from lxml import html
 
 __all__ = ('DjuAgent', 'Score', 'Scores', 'Semester', 'Schedule', 'TimePlace',
            'TimeTable')
-__version__ = '0.1.1'
+__version__ = '0.1.2'
 
 
 Schedule = namedtuple('Schedule', ('title', 'start', 'end', 'depart'))
