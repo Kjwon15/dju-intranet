@@ -23,6 +23,7 @@ install_reqs = [str(ir.req) for ir in parse_requirements('requirements.txt')]
 setup(
     name='dju-intranet',
     description='Daejeon university intranet API',
+    version='0.1.4',
     long_description=readfile('README.rst'),
     url='https://github.com/Kjwon15/dju-intranet',
     download_url='https://github.com/Kjwon15/dju-intranet/releases',
