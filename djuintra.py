@@ -343,7 +343,8 @@ class DjuAgent(object):
         from_1990.replace(year=now.year-1900)
 
         local_time = from_1990.strftime('%Y-%m-%d %H:%M:%S')
-        local_get_time = now.strftime('%s')
+        local_get_time = int(
+            (now - datetime.datetime(1970, 1, 1)).total_seconds())
 
         data = {
             'h_dept_cd': h_dept_cd,
