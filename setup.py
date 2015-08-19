@@ -26,7 +26,7 @@ with open(path.join(PWD, 'requirements.txt')) as fp:
 setup(
     name='dju-intranet',
     description='Daejeon university intranet API',
-    version='0.1.4',
+    version='0.1.5',
     long_description=readfile('README.rst'),
     url='https://github.com/Kjwon15/dju-intranet',
     download_url='https://github.com/Kjwon15/dju-intranet/releases',
