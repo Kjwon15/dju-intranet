@@ -19,9 +19,10 @@ def readfile(filename):
         return ''
 
 
-with open(path.join(PWD, 'requirements.txt')) as fp:
-    install_reqs = [ir.strip() for ir in fp.readlines()]
-
+install_reqs = [
+    'lxml>=3.4.0',
+    'requests>=2.4.3',
+]
 
 setup(
     name='dju-intranet',
