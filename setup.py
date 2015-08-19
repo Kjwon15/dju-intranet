@@ -1,5 +1,4 @@
-import os.path
-from pip.req import parse_requirements
+from os import path
 
 try:
     from setuptools import find_packages, setup
@@ -9,15 +8,19 @@ except ImportError:
     from setuptools import find_packages, setup
 
 
+PWD = path.abspath(path.dirname(__file__))
+
+
 def readfile(filename):
     try:
-        with open(os.path.join(os.path.dirname(__file__), filename)) as f:
+        with open(path.join(PWD, filename)) as f:
             return f.read()
     except (IOError, OSError):
         return ''
 
 
-install_reqs = [str(ir.req) for ir in parse_requirements('requirements.txt')]
+with open(path.join(PWD, 'requirements.txt')) as fp:
+    install_reqs = [ir.strip() for ir in fp.readlines()]
 
 
 setup(
