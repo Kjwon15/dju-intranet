@@ -387,11 +387,15 @@ class DjuAgent(object):
             raise Exception(msg)
 
         tree = html.fromstring(content)
+        form = tree.find('*//form')
 
-        action = tree.find('*//form').action
+        if not form:
+            error_msg = tree.find('*//table/tr[3]').text_content().strip()
+            raise Exception(error_msg)
+
 
         content = self.session.post(
-            action,
+            form.action,
             data = {
                 'year': tree.find('*//input[@name="year"]').value,
                 'smt': tree.find('*//input[@name="smt"]').value,
