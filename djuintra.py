@@ -364,7 +364,7 @@ class DjuAgent(object):
                 data['course_cls{0}'.format(idx)] = ''
 
         content = self.session.post(
-            self.URL_CORSE,
+            self.URL_COURSE,
             data=data,
             headers={'referer': self.URL_COURSE}).text
 
