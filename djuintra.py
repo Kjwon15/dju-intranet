@@ -415,6 +415,9 @@ class DjuAgent(object):
         tree = html.fromstring(content)
         error = tree.xpath('//td')[0].text_content().strip()
         code = int(re.search(r'\d+', error).group())
-        msg = tree.xpath('//td')[3].text_content().strip()
+        box = tree.xpath('//td')[3]
+        for br in box.xpath('*//br'):
+            br.tail = '\n' + br.tail if br.tail else '\n'
+        msg = box.text_content().strip()
 
         return (code, msg)
