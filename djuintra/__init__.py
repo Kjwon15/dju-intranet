@@ -396,6 +396,7 @@ class DjuAgent(object):
                 'smt': tree.find('*//input[@name="smt"]').value,
                 'student_cd': tree.find('*//input[@name="student_cd"]').value,
                 'curi_num': tree.find('*//input[@name="curi_num"]').value,
+                'opt': tree.find('*//input[@name="opt"]').value,
                 'dt': tree.find('*//input[@name="dt"]').value,
                 'gbn': tree.find('*//input[@name="gbn"]').value,
             },
