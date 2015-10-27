@@ -344,7 +344,8 @@ class DjuAgent(object):
         from_1990.replace(year=now.year-1900)
 
         local_time = from_1990.strftime('%Y-%m-%d %H:%M:%S')
-        local_get_time = now.strftime('%s')
+        local_get_time = int(
+            (now - datetime.datetime(1970, 1, 1)).total_seconds())
 
         data = {
             'h_dept_cd': h_dept_cd,
@@ -364,7 +365,7 @@ class DjuAgent(object):
                 data['course_cls{0}'.format(idx)] = ''
 
         content = self.session.post(
-            self.URL_CORSE,
+            self.URL_COURSE,
             data=data,
             headers={'referer': self.URL_COURSE}).text
 
@@ -386,11 +387,14 @@ class DjuAgent(object):
             raise Exception(msg)
 
         tree = html.fromstring(content)
+        form = tree.find('*//form')
 
-        action = tree.find('*//form').action
+        if not form:
+            error_msg = tree.find('*//table/tr[3]').text_content().strip()
+            raise Exception(error_msg)
 
         content = self.session.post(
-            action,
+            form.action,
             data={
                 'year': tree.find('*//input[@name="year"]').value,
                 'smt': tree.find('*//input[@name="smt"]').value,
@@ -411,6 +415,9 @@ class DjuAgent(object):
         tree = html.fromstring(content)
         error = tree.xpath('//td')[0].text_content().strip()
         code = int(re.search(r'\d+', error).group())
-        msg = tree.xpath('//td')[3].text_content().strip()
+        box = tree.xpath('//td')[3]
+        for br in box.xpath('*//br'):
+            br.tail = '\n' + br.tail if br.tail else '\n'
+        msg = box.text_content().strip()
 
         return (code, msg)
