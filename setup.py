@@ -5,7 +5,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
 
 
-version = '0.1.7'
+version = '0.1.8'
 
 install_requires = [
     'lxml>=3.4.0',
