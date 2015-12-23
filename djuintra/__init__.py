@@ -124,6 +124,7 @@ class DjuAgent(object):
     """
     URL_LOGIN_REFERER = 'http://intra.dju.ac.kr/dju/login/sycLoginSvl01.htm'
     URL_LOGIN = 'http://intra.dju.ac.kr/servlet/sys.syd.syd01Svl03'
+    URL_CHANGE_PW = 'https://intra.dju.ac.kr/servlet/sys.syc.syc01Svl07'
     URL_SCHEDULE = ('http://intra.dju.ac.kr/servlet/sys.syc.syc01Svl15'
                     '?pgm_id=W_SYS032PQ&pass_gbn=&dpt_ck=')
     # TODO: documentation departcode.
@@ -175,7 +176,10 @@ class DjuAgent(object):
             },
             headers={'referer': self.URL_LOGIN_REFERER}).text
 
-        if 'self.location' not in content:
+        if 'change_gubun' in content:
+            # Change password alert
+            self._skip_change_pw(userid, userpw)
+        elif 'self.location' not in content:
             errorcode, msg = self._get_error_code(content)
 
             if errorcode == 22:
@@ -409,6 +413,23 @@ class DjuAgent(object):
         if 'error.jpg' in content:
             errorcode, msg = self._get_error_code(content)
             raise Exception(msg)
+
+    def _skip_change_pw(self, userid, userpw):
+        self.session.post(
+            self.URL_CHANGE_PW,
+            {
+                'pass_gbn': '3',
+                'gubun': '1',
+                'change_gubun': '4',
+                'dkdlel': userid,
+                'qlalfqjsgh': userpw,
+                'id': '',
+                'old_pwd': '',
+                'new_pwd1': '',
+                'new_pwd2': '',
+            },
+            headers={'referer': self.URL_LOGIN}
+        )
 
     @classmethod
     def _get_error_code(cls, content):
