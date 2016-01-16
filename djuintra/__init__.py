@@ -309,8 +309,8 @@ class DjuAgent(object):
 
         content = self.session.get(self.URL_PERSONAL_INFO).text
         tree = html.fromstring(content)
-        table_basic = tree.xpath('/html/body/div[2]/table')[0]
-        table_contact = tree.xpath('/html/body/div[5]/table')[0]
+        table_basic = tree.xpath('//table')[1]
+        table_contact = tree.xpath('//table')[4]
 
         userid = table_basic.xpath('tr[1]/td[3]')[0].text_content()
         name = table_basic.xpath('tr[1]/td[5]')[0].text_content()
