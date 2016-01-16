@@ -300,6 +300,7 @@ class DjuAgent(object):
 
     def get_personal_info(self):
         """Get personal info
+
         :returns: A dictionary that contains personal info.
         :rtype: :class:`dict`
         """
