@@ -139,6 +139,8 @@ class DjuAgent(object):
                  '?pgm_id=W_SUL330PE&pass_gbn=&dpt_ck=03')
     URL_COURSE = ('http://intra.dju.ac.kr/servlet/su.sug.sug02Svl03'
                   '?pgm_id=W_SUG010PE&pass_gbn=001&dpt_ck=03')
+    URL_PERSONAL_INFO = ('http://intra.dju.ac.kr/servlet/su.sud.sud11Svl01'
+                         '?pgm_id=W_SUD013PQ&pass_gbn=&dpt_ck=02')
     DATE_FORMAT = '%Y-%m-%d %H-%M-%S'
 
     TIMETABLE_CATEGORIES = {
@@ -201,10 +203,13 @@ class DjuAgent(object):
             {'LOGIN_AUTH': login_auth})
 
     def get_photo_url(self):
-        userid = self.get('userid')
-        if not userid:
-            raise Exception('Not logged in')
-        return get_photo_url(self.userid)
+        try:
+            userid = self.userid
+        except AttributeError:
+            userid = self.get_personal_info()['userid']
+            self.userid = userid
+
+        return get_photo_url(userid)
 
     def get_schedules(self):
         """Get schedules from intranet.
@@ -292,6 +297,42 @@ class DjuAgent(object):
             yield TimeTable(grade, division, code, classcode, classtype,
                             classname, score, time, minor, profname, times,
                             maxstudents, available)
+
+    def get_personal_info(self):
+        """Get personal info
+        :returns: A dictionary that contains personal info.
+        :rtype: :class:`dict`
+        """
+
+        # TODO: Set more fields.
+
+        content = self.session.get(self.URL_PERSONAL_INFO).text
+        tree = html.fromstring(content)
+        table_basic = tree.xpath('/html/body/div[2]/table')[0]
+        table_contact = tree.xpath('/html/body/div[5]/table')[0]
+
+        userid = table_basic.xpath('tr[1]/td[3]')[0].text_content()
+        name = table_basic.xpath('tr[1]/td[5]')[0].text_content()
+        english_name = table_basic.xpath('tr[2]/td[2]')[0].text_content()
+        kanji_name = table_basic.xpath('tr[2]/td[4]')[0].text_content()
+        kssn = table_basic.xpath('tr[3]/td[2]')[0].text_content()
+        status = table_basic.xpath('tr[3]/td[4]')[0].text_content()
+        grade = table_basic.xpath('tr[4]/td[4]')[0].text_content()
+        sex = table_basic.xpath('tr[8]/td[4]')[0].text_content()
+
+        phone = table_contact.xpath('tr[6]/td[3]')[0].text_content()
+
+        return {
+            'userid': userid,
+            'name': name,
+            'english_name': english_name,
+            'kanji_name': kanji_name,
+            'kssn': kssn,
+            'status': status,
+            'grade': grade,
+            'sex': sex,
+            'phone': phone,
+        }
 
     def get_personal_scores(self):
         """Get personal total scores
