@@ -317,7 +317,7 @@ class DjuAgent(object):
         kanji_name = table_basic.xpath('tr[2]/td[4]')[0].text_content()
         kssn = table_basic.xpath('tr[3]/td[2]')[0].text_content()
         status = table_basic.xpath('tr[3]/td[4]')[0].text_content()
-        grade = table_basic.xpath('tr[4]/td[4]')[0].text_content()
+        grade = table_basic.xpath('tr[5]/td[4]')[0].text_content()
         sex = table_basic.xpath('tr[8]/td[4]')[0].text_content()
 
         phone = table_contact.xpath('tr[6]/td[3]')[0].text_content()
