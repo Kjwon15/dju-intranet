@@ -10,6 +10,8 @@ import requests
 from collections import namedtuple
 from lxml import html
 
+from .util import get_photo_url
+
 __all__ = ('DjuAgent', 'Score', 'Scores', 'Semester', 'Schedule', 'TimePlace',
            'TimeTable')
 __version__ = '0.1.2'
@@ -188,6 +190,8 @@ class DjuAgent(object):
                 raise ValueError('User id not found')
             raise ValueError(msg)
 
+        self.userid = userid
+
     def get_login_auth(self):
         return self.session.cookies['LOGIN_AUTH']
 
@@ -195,6 +199,12 @@ class DjuAgent(object):
         requests.utils.add_dict_to_cookiejar(
             self.session.cookies,
             {'LOGIN_AUTH': login_auth})
+
+    def get_photo_url(self):
+        userid = self.get('userid')
+        if not userid:
+            raise Exception('Not logged in')
+        return get_photo_url(self.userid)
 
     def get_schedules(self):
         """Get schedules from intranet.
