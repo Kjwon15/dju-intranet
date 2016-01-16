@@ -318,10 +318,13 @@ class DjuAgent(object):
         kanji_name = table_basic.xpath('tr[2]/td[4]')[0].text_content()
         kssn = table_basic.xpath('tr[3]/td[2]')[0].text_content()
         status = table_basic.xpath('tr[3]/td[4]')[0].text_content()
+        major = table_basic.xpath('tr[4]/td[4]')[0].text_content()
         grade = table_basic.xpath('tr[5]/td[4]')[0].text_content()
         sex = table_basic.xpath('tr[8]/td[4]')[0].text_content()
 
+        address_real = table_contact.xpath('tr[5]/td[1]')[0].text_content()
         phone = table_contact.xpath('tr[6]/td[3]')[0].text_content()
+        email = table_contact.xpath('tr[6]/td[5]')[0].text_content()
 
         return {
             'userid': userid,
@@ -330,9 +333,12 @@ class DjuAgent(object):
             'kanji_name': kanji_name,
             'kssn': kssn,
             'status': status,
+            'major': major,
             'grade': grade,
             'sex': sex,
+            'address_real': address_real,
             'phone': phone,
+            'email': email,
         }
 
     def get_personal_scores(self):
