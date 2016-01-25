@@ -192,7 +192,19 @@ class DjuAgent(object):
                 raise ValueError('User id not found')
             raise ValueError(msg)
 
-        self.userid = userid
+        self._userid = userid
+
+    @property
+    def userid(self):
+        try:
+            return self._userid
+        except AttributeError:
+            try:
+                info = self.get_personal_info()
+                self._userid = info['userid']
+                return self._userid
+            except:
+                return None
 
     def get_login_auth(self):
         return self.session.cookies['LOGIN_AUTH']
@@ -203,13 +215,7 @@ class DjuAgent(object):
             {'LOGIN_AUTH': login_auth})
 
     def get_photo_url(self):
-        try:
-            userid = self.userid
-        except AttributeError:
-            userid = self.get_personal_info()['userid']
-            self.userid = userid
-
-        return get_photo_url(userid)
+        return get_photo_url(self.userid)
 
     def get_schedules(self):
         """Get schedules from intranet.
@@ -488,6 +494,9 @@ class DjuAgent(object):
             },
             headers={'referer': self.URL_LOGIN}
         )
+
+    def __repr__(self):
+        return '<{}: {}>'.format(self.__class__.__name__, self.userid)
 
     @classmethod
     def _get_error_code(cls, content):
