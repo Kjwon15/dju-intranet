@@ -399,7 +399,7 @@ class DjuAgent(object):
             elif errorcode == 99:
                 # not your time
                 pass
-            raise Exception(msg)
+            raise RegisterError(msg, errorcode)
 
         tree = html.fromstring(content)
         h_dept_cd = tree.find('*//input[@name="h_dept_cd"]').value
@@ -509,3 +509,13 @@ class DjuAgent(object):
         msg = box.text_content().strip()
 
         return (code, msg)
+
+
+class RegisterError(Exception):
+
+    def __init__(self, msg, code):
+        super(RegisterError, self).__init__(msg)
+        self.code = code
+
+    def __repr__(self):
+        return '<RegisterError code={}>'.format(self.code)
