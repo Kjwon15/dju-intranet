@@ -424,6 +424,8 @@ class DjuAgent(object):
             'local_get_time': local_get_time,
         }
 
+        courses = list(courses)
+
         for idx in range(30):
             try:
                 data['curi_num{0}'.format(idx)] = courses[idx][0]
@@ -442,7 +444,20 @@ class DjuAgent(object):
 
         if errors:
             error_msgs = [error.text_content().strip() for error in errors]
-            raise ValueError(error_msgs)
+            failed_courses = self._collect_failed_courses(tree)
+            raise RegisterError(error_msgs, 0, failed_courses)
+
+    def register_course_recurse(self, courses):
+        courses = set(courses)
+        for retry_count in range(len(courses)):
+            try:
+                self.register_course(courses)
+            except RegisterError as e:
+                if not hasattr(e, 'failed_courses'):
+                    raise e
+                courses -= set(e.failed_courses)
+            else:
+                break
 
     def register_toeic(self):
         """Register simulated toeic
@@ -495,11 +510,27 @@ class DjuAgent(object):
             headers={'referer': self.URL_LOGIN}
         )
 
+    @staticmethod
+    def _collect_failed_courses(tree):
+        table = tree.xpath('//div/table')[3]
+        trs = table.xpath('*/tr')[2:]
+        msgs = zip(trs[::2], trs[1::2])
+
+        results = []
+
+        for msg in msgs:
+            if msg[1].find('*[@bgcolor="red"]') is not None:
+                code = msg[0].find('*//input[@size="6"]').value
+                cls = msg[0].find('*//input[@size="2"]').value
+                results.append((code, cls))
+
+        return results;
+
     def __repr__(self):
         return '<{}: {}>'.format(self.__class__.__name__, self.userid)
 
-    @classmethod
-    def _get_error_code(cls, content):
+    @staticmethod
+    def _get_error_code(content):
         tree = html.fromstring(content)
         error = tree.xpath('//td')[0].text_content().strip()
         code = int(re.search(r'\d+', error).group())
@@ -513,9 +544,10 @@ class DjuAgent(object):
 
 class RegisterError(Exception):
 
-    def __init__(self, msg, code):
+    def __init__(self, msg, code, failed_courses=None):
         super(RegisterError, self).__init__(msg)
         self.code = code
+        self.failed_courses = failed_courses
 
     def __repr__(self):
         return '<RegisterError code={}>'.format(self.code)
