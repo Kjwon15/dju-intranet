@@ -151,6 +151,11 @@ class DjuAgent(object):
 
     def __init__(self, userid=None, userpw=None, login_auth=None):
         self.session = requests.session()
+        self.session.headers.update({
+            'User-Agent': ('Mozilla/5.0 (Windows NT 6.1) '
+                           'AppleWebKit/537.36 (KHTML, like Gecko) '
+                           'Chrome/41.0.2228.0 Safari/537.36'),
+        })
 
         if login_auth:
             self.set_login_auth(login_auth)
@@ -173,7 +178,7 @@ class DjuAgent(object):
         content = self.session.post(
             self.URL_LOGIN,
             {
-                'proc_gubun': '1',
+                'proc_gubun': '2',
                 'pgm_id': 'SYS200PE',
                 'id': userid,
                 'pwd': userpw,
