@@ -529,7 +529,7 @@ class DjuAgent(object):
                 cls = msg[0].find('*//input[@size="2"]').value
                 results.append((code, cls))
 
-        return results;
+        return results
 
     def __repr__(self):
         return '<{}: {}>'.format(self.__class__.__name__, self.userid)
