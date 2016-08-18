@@ -8,6 +8,7 @@ import datetime
 import re
 import requests
 from collections import namedtuple
+from fake_useragent import UserAgent
 from lxml import html
 
 from .util import get_photo_url
@@ -151,10 +152,9 @@ class DjuAgent(object):
 
     def __init__(self, userid=None, userpw=None, login_auth=None):
         self.session = requests.session()
+        ua = UserAgent()
         self.session.headers.update({
-            'User-Agent': ('Mozilla/5.0 (Windows NT 6.1) '
-                           'AppleWebKit/537.36 (KHTML, like Gecko) '
-                           'Chrome/41.0.2228.0 Safari/537.36'),
+            'User-Agent': ua.chrome,
         })
 
         if login_auth:

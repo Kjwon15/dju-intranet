@@ -8,6 +8,7 @@ README = open(os.path.join(here, 'README.rst')).read()
 version = '0.3.1'
 
 install_requires = [
+    'fake-useragent>=0.1.2',
     'lxml>=3.4.0',
     'requests>=2.4.3',
 ]
