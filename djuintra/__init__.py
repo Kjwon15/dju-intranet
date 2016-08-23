@@ -449,6 +449,7 @@ class DjuAgent(object):
 
         if errors:
             error_msgs = [error.text_content().strip() for error in errors]
+            error_msgs = ', '.join(error_msgs)
             failed_courses = self._collect_failed_courses(tree)
             raise RegisterError(error_msgs, 0, failed_courses)
 
